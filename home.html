@@ -76,7 +76,7 @@ h2{font-size:clamp(30px,4.4vw,48px);letter-spacing:-.055em;line-height:1.05;marg
 <div class="shade" aria-hidden="true"></div>
 <div class="site">
 <header class="nav">
-  <a class="brand" href="home.html"><img src="assets/volirizemp.png" alt="">VOLIRIZEMP</a>
+  <a class="brand" href="home.html"><img data-image="brand.logo" src="assets/volirize-mark.svg" alt="VolirizeMP logo">VOLIRIZEMP</a>
   <nav class="navlinks" aria-label="Main navigation">
     <a href="#about">About</a><a href="#features">What to expect</a><a href="#community">Community</a><a class="nav-cta" href="downloads.html">Downloads ↗</a>
   </nav>
@@ -91,19 +91,19 @@ h2{font-size:clamp(30px,4.4vw,48px);letter-spacing:-.055em;line-height:1.05;marg
     </div>
     <div class="visual" aria-label="VolirizeMP project artwork">
       <div class="visual-glow"></div>
-      <div class="feature-art"><div class="art-v">V</div><div class="art-caption">VOLIRIZEMP · COMMUNITY PROJECT</div></div>
+      <div class="feature-art" data-image="home.heroArtwork"><div class="art-v">V</div><div class="art-caption">VOLIRIZEMP · COMMUNITY PROJECT</div></div>
     </div>
   </section>
   <section class="section wrap" id="about">
     <div class="section-head"><div class="kicker">01 / About Volirize</div><h2>Built around the memories.</h2><p>VolirizeMP aims to create a place for people who miss the atmosphere of Fortnite's earlier days. The project is being developed independently, with its own community and identity.</p></div>
-    <div class="about-panel"><div class="about-mark">V</div><div class="about-copy"><div class="kicker">THE IDEA</div><h2>A familiar feeling, a new home.</h2><p>From the look and feel of the classic era to the people you play alongside, VolirizeMP is about celebrating what made those moments memorable. More information, project updates and supported features will be shared here as development progresses.</p></div></div>
+    <div class="about-panel"><div class="about-mark" data-image="home.aboutArtwork">V</div><div class="about-copy"><div class="kicker">THE IDEA</div><h2>A familiar feeling, a new home.</h2><p>From the look and feel of the classic era to the people you play alongside, VolirizeMP is about celebrating what made those moments memorable. More information, project updates and supported features will be shared here as development progresses.</p></div></div>
   </section>
   <section class="section wrap" id="features">
     <div class="section-head"><div class="kicker">02 / The experience</div><h2>What we're building.</h2><p>A project shaped around the classic Fortnite community. These are the pillars behind VolirizeMP.</p></div>
     <div class="cards">
-      <article class="card"><div class="card-art"><div class="art-label">THE CLASSIC FEEL</div></div><div class="card-body"><h3>Back to the classics</h3><p>A community experience inspired by the atmosphere, style and nostalgia of earlier Fortnite seasons.</p></div></article>
-      <article class="card"><div class="card-art two"><div class="art-label">PLAY TOGETHER</div></div><div class="card-body"><h3>Community first</h3><p>A place for players to connect, share feedback and follow the project's progress together.</p></div></article>
-      <article class="card"><div class="card-art three"><div class="art-label">THE PROJECT</div></div><div class="card-body"><h3>Always evolving</h3><p>Development updates and future details will be shared as the project takes shape.</p></div></article>
+      <article class="card"><div class="card-art" data-image="home.features.classic"><div class="art-label">THE CLASSIC FEEL</div></div><div class="card-body"><h3>Back to the classics</h3><p>A community experience inspired by the atmosphere, style and nostalgia of earlier Fortnite seasons.</p></div></article>
+      <article class="card"><div class="card-art two" data-image="home.features.community"><div class="art-label">PLAY TOGETHER</div></div><div class="card-body"><h3>Community first</h3><p>A place for players to connect, share feedback and follow the project's progress together.</p></div></article>
+      <article class="card"><div class="card-art three" data-image="home.features.development"><div class="art-label">THE PROJECT</div></div><div class="card-body"><h3>Always evolving</h3><p>Development updates and future details will be shared as the project takes shape.</p></div></article>
     </div>
   </section>
   <section class="section wrap" id="community">
@@ -112,6 +112,25 @@ h2{font-size:clamp(30px,4.4vw,48px);letter-spacing:-.055em;line-height:1.05;marg
 </main>
 <footer class="footer">VOLIRIZEMP © 2026 · AN INDEPENDENT COMMUNITY PROJECT · NOT AFFILIATED WITH OR ENDORSED BY EPIC GAMES</footer>
 </div>
+<script src="image-config.js"></script>
+<script>
+(() => {
+  const config = window.VOLIRIZE_IMAGES || {};
+  const getValue = (path) => path.split('.').reduce((obj, key) => obj && obj[key], config);
+  document.querySelectorAll('[data-image]').forEach((element) => {
+    const source = getValue(element.dataset.image);
+    if (!source || typeof source !== 'string') return;
+    if (element.tagName === 'IMG') {
+      element.src = source;
+      return;
+    }
+    element.style.backgroundImage = 'linear-gradient(135deg, rgba(3,8,25,.12), rgba(3,8,25,.18)), url("' + source.replace(/"/g, '%22') + '")';
+    element.style.backgroundSize = 'cover';
+    element.style.backgroundPosition = 'center';
+    element.style.backgroundRepeat = 'no-repeat';
+  });
+})();
+</script>
 <script>
 (() => {
   const canvas = document.getElementById('liquid');
