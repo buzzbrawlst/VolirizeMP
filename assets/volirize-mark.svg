@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
+<defs>
+ <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eaffff"/><stop offset=".2" stop-color="#34eaff"/><stop offset=".48" stop-color="#0878ff"/><stop offset=".72" stop-color="#3924ff"/><stop offset="1" stop-color="#ff42d5"/></linearGradient>
+ <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+ <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="13" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<path d="M116 92 Q101 68 130 58 L205 40 Q235 34 248 67 L307 278 Q312 296 322 278 L390 65 Q400 34 430 42 L500 61 Q529 69 516 102 L393 486 Q379 530 338 535 L253 535 Q215 533 200 490 Z" fill="url(#glass)" stroke="#7df7ff" stroke-width="9" stroke-linejoin="round" filter="url(#glow)"/>
+<path d="M139 91 Q150 74 190 68 L222 62 Q238 59 246 83 L291 239 Q300 272 314 305 Q325 333 344 294 L409 87 Q416 67 439 75 L483 88 Q497 94 488 119" fill="none" stroke="url(#shine)" stroke-width="20" stroke-linecap="round"/>
+<path d="M143 124 Q161 105 190 105 L226 105 Q241 106 250 136 L290 267 Q301 303 324 325 Q339 341 359 308 L430 119" fill="none" stroke="#eaffff" stroke-opacity=".4" stroke-width="7" stroke-linecap="round"/>
+<path d="M224 448 Q253 489 299 482 Q355 473 380 414" fill="none" stroke="#ffb8ff" stroke-opacity=".85" stroke-width="13" stroke-linecap="round"/>
+<ellipse cx="166" cy="128" rx="11" ry="21" fill="#fff" opacity=".95" transform="rotate(-24 166 128)"/>
+<ellipse cx="437" cy="116" rx="9" ry="17" fill="#fff" opacity=".9" transform="rotate(22 437 116)"/>
+<circle cx="467" cy="173" r="10" fill="#b8ffff" opacity=".9"/>
+<circle cx="184" cy="185" r="7" fill="#fff" opacity=".9"/>
+<path d="M244 504 Q292 524 345 501" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".8"/>
+</svg>
