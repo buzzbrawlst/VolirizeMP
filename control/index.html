@@ -19,7 +19,7 @@ h1{font-size:clamp(34px,5vw,52px);letter-spacing:-.06em;margin:10px 0 28px}.mute
 @media(max-width:800px){.layout{grid-template-columns:1fr}.top{padding:0 20px}main{padding:34px 18px 60px}.panel{padding:18px}.post{align-items:flex-start;flex-direction:column}}
 </style></head>
 <body>
-<header class="top"><div class="brand">VOLIRIZEMP / CONTROL</div><a href="../../home.html">← View website</a></header>
+<header class="top"><div class="brand">VOLIRIZEMP / CONTROL</div><a href="../home.html">← View website</a></header>
 <main>
 <section id="login-panel" class="panel login">
  <div class="eyebrow">Restricted area</div><h1>Admin sign in.</h1><p class="muted">Sign in with an account that has been granted VolirizeMP administrator access.</p>
@@ -46,7 +46,7 @@ h1{font-size:clamp(34px,5vw,52px);letter-spacing:-.06em;margin:10px 0 28px}.mute
  </div>
 </section>
 </main>
-<script src="../../supabase-config.js"></script>
+<script src="../supabase-config.js"></script>
 <script type="module">
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2.118.0";
 const cfg=window.VOLIRIZE_SUPABASE,db=createClient(cfg.url,cfg.publishableKey);
