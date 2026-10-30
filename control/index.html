@@ -23,7 +23,9 @@ h1{font-size:clamp(34px,5vw,52px);letter-spacing:-.06em;margin:10px 0 28px}.mute
 <main>
 <section id="login-panel" class="panel login">
  <div class="eyebrow">Restricted area</div><h1>Admin sign in.</h1><p class="muted">Sign in with an account that has been granted VolirizeMP administrator access.</p>
- <form id="login-form"><div class="field"><label for="email">Email address</label><input id="email" type="email" autocomplete="username" required></div><div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div><button class="btn" type="submit">Sign in securely</button></form><div class="status" id="login-status" role="status"></div>
+ <form id="login-form"><div class="field"><label for="email">Email address</label><input id="email" type="email" autocomplete="username" required></div><div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div><button class="btn" type="submit" id="auth-submit">Sign in securely</button></form>
+ <p class="muted" style="margin-top:16px">First time here? <button type="button" class="btn secondary" id="signup-toggle">Create your admin account</button></p>
+ <div class="status" id="login-status" role="status"></div>
 </section>
 <section id="dashboard" hidden>
  <div class="toolbar"><div><div class="eyebrow">Content management</div><h1>News dashboard.</h1><div class="muted" id="signed-in"></div></div><button class="btn secondary" id="logout">Sign out</button></div>
@@ -62,7 +64,12 @@ async function checkAdmin(){
  if(error||allowed!==true){await db.auth.signOut();$("login-panel").hidden=false;$("dashboard").hidden=true;say("login-status","This account does not have administrator access.");return;}
  currentUser=session.user;$("login-panel").hidden=true;$("dashboard").hidden=false;$("signed-in").textContent="Signed in as "+session.user.email;await loadPosts();
 }
-$("login-form").addEventListener("submit",async e=>{e.preventDefault();say("login-status","Signing in…");const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){say("login-status",error.message);return;}say("login-status","");await checkAdmin();});
+let signupMode=false;
+$("signup-toggle").addEventListener("click",()=>{signupMode=!signupMode;$("auth-submit").textContent=signupMode?"Create account":"Sign in securely";$("signup-toggle").textContent=signupMode?"Back to sign in":"Create your admin account";say("login-status",signupMode?"Create the account using the authorised admin email address. Choose your own password.":"");});
+$("login-form").addEventListener("submit",async e=>{e.preventDefault();const email=$("email").value.trim().toLowerCase(),password=$("password").value;say("login-status",signupMode?"Creating account…":"Signing in…");
+ if(signupMode){if(email!=="admin@volirize.mp.com"){say("login-status","Admin registration is restricted to the authorised VolirizeMP email address.");return;}const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});if(error){say("login-status",error.message);return;}if(data.session){say("login-status","Account created. Signing you in…");await checkAdmin();}else{say("login-status","Account created. Check your inbox to confirm your email, then return here and sign in.");}return;}
+ const {error}=await db.auth.signInWithPassword({email,password});if(error){say("login-status",error.message);return;}say("login-status","");await checkAdmin();
+});
 $("logout").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;await checkAdmin();});
 async function loadPosts(){
  say("list-status","Loading posts…");const {data,error}=await db.from("volirize_news").select("*").order("updated_at",{ascending:false});
