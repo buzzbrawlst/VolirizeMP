@@ -1,0 +1,15 @@
+{
+  "posts": [
+    {
+      "slug": "welcome-to-volirizemp",
+      "title": "Welcome to VolirizeMP",
+      "date": "2026-10-30",
+      "category": "Announcement",
+      "excerpt": "The official VolirizeMP news page is now live. Check here for project announcements and development updates.",
+      "body": "Welcome to the VolirizeMP news page.\n\nThis is where we'll share announcements, development notes and important project updates. Check back soon for more.",
+      "image": "",
+      "featured": true,
+      "published": true
+    }
+  ]
+}
