@@ -51,26 +51,63 @@ h1{font-size:clamp(34px,5vw,52px);letter-spacing:-.06em;margin:10px 0 28px}.mute
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2.118.0";
 const cfg=window.VOLIRIZE_SUPABASE,db=createClient(cfg.url,cfg.publishableKey);
 const $=id=>document.getElementById(id);
-let currentUser=null,currentBanner=null,posts=[];
+let currentUser=null,currentBanner=null,posts=[],authCheck=0;
+const $=id=>document.getElementById(id);
 const say=(id,msg)=>$(id).textContent=msg;
 const slugify=s=>s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 function clearEditor(){ $("post-form").reset();$("post-id").value="";currentBanner=null;$("editor-heading").textContent="Create an update";$("save").textContent="Save post";$("preview").style.display="none";$("preview").src="";$("banner-status").textContent="Optional. Uploads to the Volirize news image bucket.";say("editor-status","");}
 $("title").addEventListener("input",()=>{if(!$("post-id").value)$("slug").value=slugify($("title").value);});
 $("reset").addEventListener("click",clearEditor);$("new-post").addEventListener("click",clearEditor);
-async function checkAdmin(){
- const {data:{session}}=await db.auth.getSession();
- if(!session){$("login-panel").hidden=false;$("dashboard").hidden=true;return;}
- const {data:allowed,error}=await db.rpc("is_volirize_admin");
- if(error||allowed!==true){await db.auth.signOut();$("login-panel").hidden=false;$("dashboard").hidden=true;say("login-status","This account does not have administrator access.");return;}
- currentUser=session.user;$("login-panel").hidden=true;$("dashboard").hidden=false;$("signed-in").textContent="Signed in as "+session.user.email;await loadPosts();
+function showSignedOut(message=""){
+ currentUser=null;$("login-panel").hidden=false;$("dashboard").hidden=true;
+ if(message)say("login-status",message);
+}
+async function renderSession(session){
+ const run=++authCheck;
+ if(!session){showSignedOut();return;}
+ $("login-panel").hidden=true;$("dashboard").hidden=true;
+ say("login-status","Checking administrator access…");
+ try{
+  const {data:allowed,error}=await db.rpc("is_volirize_admin");
+  if(run!==authCheck)return;
+  if(error){showSignedOut("Signed in, but the admin check failed: "+error.message+" — please refresh and try again.");return;}
+  if(allowed!==true){
+   await db.auth.signOut();
+   if(run===authCheck)showSignedOut("This account is signed in, but it has not been granted VolirizeMP administrator access.");
+   return;
+  }
+  currentUser=session.user;
+  $("login-panel").hidden=true;$("dashboard").hidden=false;
+  $("signed-in").textContent="Signed in as "+session.user.email;
+  say("login-status","");
+  await loadPosts();
+ }catch(err){
+  if(run===authCheck)showSignedOut("Could not verify your admin session: "+(err.message||"Unknown error")+". Please refresh and try again.");
+ }
 }
 let signupMode=false;
 $("signup-toggle").addEventListener("click",()=>{signupMode=!signupMode;$("auth-submit").textContent=signupMode?"Create account":"Sign in securely";$("signup-toggle").textContent=signupMode?"Back to sign in":"Create your admin account";say("login-status",signupMode?"Create the account using the authorised admin email address. Choose your own password.":"");});
-$("login-form").addEventListener("submit",async e=>{e.preventDefault();const email=$("email").value.trim().toLowerCase(),password=$("password").value;say("login-status",signupMode?"Creating account…":"Signing in…");
- if(signupMode){if(email!=="admin@volirize.mp.com"){say("login-status","Admin registration is restricted to the authorised VolirizeMP email address.");return;}const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});if(error){say("login-status",error.message);return;}if(data.session){say("login-status","Account created. Signing you in…");await checkAdmin();}else{say("login-status","Account created. Check your inbox to confirm your email, then return here and sign in.");}return;}
- const {error}=await db.auth.signInWithPassword({email,password});if(error){say("login-status",error.message);return;}say("login-status","");await checkAdmin();
+$("login-form").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const button=$("auth-submit"),email=$("email").value.trim().toLowerCase(),password=$("password").value;
+ button.disabled=true;say("login-status",signupMode?"Creating account…":"Signing in…");
+ try{
+  if(signupMode){
+   if(email!=="admin@volirize.mp.com"){say("login-status","Admin registration is restricted to the authorised VolirizeMP email address.");return;}
+   const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
+   if(error){say("login-status",error.message);return;}
+   if(data.session){await renderSession(data.session);}
+   else{say("login-status","Account created. Check your inbox to confirm your email, then return here and sign in.");}
+   return;
+  }
+  const {data,error}=await db.auth.signInWithPassword({email,password});
+  if(error){say("login-status",error.message);return;}
+  if(!data.session){say("login-status","Sign-in returned no active session. Check your email confirmation and try again.");return;}
+  await renderSession(data.session);
+ }catch(err){say("login-status","Sign-in could not complete: "+(err.message||"Unknown error"));}
+ finally{button.disabled=false;}
 });
-$("logout").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;await checkAdmin();});
+$("logout").addEventListener("click",async()=>{await db.auth.signOut();showSignedOut("You have been signed out.");});
 async function loadPosts(){
  say("list-status","Loading posts…");const {data,error}=await db.from("volirize_news").select("*").order("updated_at",{ascending:false});
  if(error){say("list-status",error.message);return;}posts=data||[];const root=$("posts");root.replaceChildren();
@@ -87,12 +124,16 @@ $("post-form").addEventListener("submit",async e=>{
   const id=$("post-id").value||crypto.randomUUID(),file=$("banner").files[0];
   if(file){const ext=file.name.split(".").pop().toLowerCase().replace(/[^a-z0-9]/g,"")||"img";const path=id+"/"+Date.now()+"."+ext;const {error}=await db.storage.from("volirize-news").upload(path,file,{upsert:true,contentType:file.type});if(error)throw error;currentBanner=path;}
   const payload={title:$("title").value.trim(),slug:slugify($("slug").value),excerpt:$("excerpt").value.trim(),body:$("body").value.trim(),banner_path:currentBanner,featured:$("featured").checked,published:$("published").checked,created_by:currentUser.id};
-  const {error}= $("post-id").value?await db.from("volirize_news").update(payload).eq("id",id):await db.from("volirize_news").insert({id,...payload});
+  const {error}=$("post-id").value?await db.from("volirize_news").update(payload).eq("id",id):await db.from("volirize_news").insert({id,...payload});
   if(error)throw error;say("editor-status","Saved successfully.");clearEditor();await loadPosts();
  }catch(err){say("editor-status",err.message||"Could not save this post.");}
  finally{$("save").disabled=false;}
 });
-db.auth.onAuthStateChange(()=>{setTimeout(checkAdmin,0);});
-await checkAdmin();
+db.auth.onAuthStateChange((event,session)=>{
+ if(event==="SIGNED_OUT"||event==="SIGNED_IN"||event==="TOKEN_REFRESHED")setTimeout(()=>renderSession(session),0);
+});
+const {data:{session:initialSession},error:sessionError}=await db.auth.getSession();
+if(sessionError)showSignedOut("Could not restore your sign-in: "+sessionError.message);
+else await renderSession(initialSession);
 </script>
 </body></html>
