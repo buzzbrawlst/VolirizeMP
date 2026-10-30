@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050713"><title>News | VolirizeMP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#050713;--white:#f6f9ff;--muted:#aab7d1;--line:rgba(220,240,255,.14);--cyan:#71f4ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 12% 0%,#102d55 0,transparent 38%),radial-gradient(ellipse at 90% 10%,#351b58 0,transparent 34%),var(--bg);color:var(--white);font-family:"DM Sans",sans-serif;min-height:100vh}
+a{color:inherit;text-decoration:none}.nav{height:76px;max-width:1160px;margin:auto;padding:0 26px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.brand{font-size:14px;font-weight:800;letter-spacing:.08em}.nav a:last-child{font-size:12px;color:var(--muted)}.wrap{max-width:1080px;margin:auto;padding:64px 26px 90px}
+.kicker{color:var(--cyan);font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+h1{font-size:clamp(42px,7vw,72px);letter-spacing:-.07em;line-height:1;margin:14px 0}
+.intro{color:var(--muted);font-size:14px;line-height:1.8;max-width:580px;margin:0 0 36px}
+#status{color:var(--muted);font-size:13px;padding:20px 0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.story{border:1px solid var(--line);border-radius:20px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.025));transition:.25s}
+.story:hover{transform:translateY(-4px);border-color:rgba(113,244,255,.45)}
+.cover{height:220px;background:linear-gradient(135deg,#087d9e,#3433a2 60%,#a52d8c);background-size:cover;background-position:center}
+.story-content{padding:22px}.meta{color:var(--cyan);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+h2{font-size:21px;letter-spacing:-.04em;margin:10px 0}.excerpt{font-size:13px;color:var(--muted);line-height:1.75;margin:0 0 18px}
+.read{font-size:11px;font-weight:800;color:#dffcff}
+.article{max-width:780px;margin:auto}.article-cover{height:min(48vw,390px);min-height:210px;border-radius:22px;background:linear-gradient(135deg,#087d9e,#3433a2 60%,#a52d8c);background-size:cover;background-position:center;margin:28px 0}
+.article-body{white-space:pre-wrap;color:#d5deef;font-size:15px;line-height:1.95}.back{display:inline-block;margin-bottom:26px;color:var(--cyan);font-size:12px;font-weight:700}
+.empty{grid-column:1/-1;border:1px solid var(--line);border-radius:18px;padding:30px;color:var(--muted);background:rgba(255,255,255,.04)}
+@media(max-width:700px){.wrap{padding:48px 19px}.nav{padding:0 19px}.grid{grid-template-columns:1fr}.cover{height:190px}}
+</style>
+</head>
+<body>
+<header class="nav"><a class="brand" href="home.html">VOLIRIZEMP</a><a href="home.html">← Back to home</a></header>
+<main class="wrap">
+<div id="listing">
+  <div class="kicker">Project updates</div><h1>News & updates.</h1>
+  <p class="intro">The latest announcements, development notes and updates from the VolirizeMP project.</p>
+  <div id="status">Loading the latest updates…</div><section class="grid" id="stories"></section>
+</div>
+<article class="article" id="article" hidden>
+  <a class="back" href="news.html">← All news</a><div class="kicker" id="article-date">VOLIRIZEMP NEWS</div>
+  <h1 id="article-title"></h1><p class="intro" id="article-excerpt"></p><div class="article-cover" id="article-cover"></div>
+  <div class="article-body" id="article-body"></div>
+</article>
+</main>
+<script src="supabase-config.js"></script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.118.0";
+const cfg=window.VOLIRIZE_SUPABASE;
+const db=createClient(cfg.url,cfg.publishableKey);
+const $=id=>document.getElementById(id);
+const date=v=>new Date(v).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+const imageFor=path=>path?db.storage.from("volirize-news").getPublicUrl(path).data.publicUrl:"";
+const params=new URLSearchParams(location.search),slug=params.get("story");
+const {data:rows,error}=await db.from("volirize_news").select("id,title,slug,excerpt,body,banner_path,featured,published_at,created_at").eq("published",true).order("featured",{ascending:false}).order("published_at",{ascending:false});
+if(error){$("status").textContent="News is temporarily unavailable. Please try again later.";}
+else if(slug){
+ const post=(rows||[]).find(x=>x.slug===slug);
+ $("listing").hidden=true;$("article").hidden=false;
+ if(!post){$("article-title").textContent="Story not found";$("article-excerpt").textContent="This update may have been moved or unpublished.";$("article-body").textContent="";}
+ else{
+  $("article-date").textContent=date(post.published_at||post.created_at);
+  $("article-title").textContent=post.title;$("article-excerpt").textContent=post.excerpt;
+  $("article-body").textContent=post.body;
+  const url=imageFor(post.banner_path);if(url)$("article-cover").style.backgroundImage='url("'+url.replace(/"/g,"%22")+'")';else $("article-cover").hidden=true;
+  document.title=post.title+" | VolirizeMP";
+ }
+}else{
+ $("status").remove();
+ const grid=$("stories");
+ if(!rows?.length){grid.innerHTML='<div class="empty">No updates have been published yet. Check back soon.</div>';}
+ for(const p of rows||[]){
+  const card=document.createElement("a");card.className="story";card.href="news.html?story="+encodeURIComponent(p.slug);
+  const cover=document.createElement("div");cover.className="cover";const url=imageFor(p.banner_path);if(url)cover.style.backgroundImage='url("'+url.replace(/"/g,"%22")+'")';
+  const content=document.createElement("div");content.className="story-content";
+  const meta=document.createElement("div");meta.className="meta";meta.textContent=date(p.published_at||p.created_at)+(p.featured?" · Featured":"");
+  const title=document.createElement("h2");title.textContent=p.title;
+  const excerpt=document.createElement("p");excerpt.className="excerpt";excerpt.textContent=p.excerpt;
+  const read=document.createElement("span");read.className="read";read.textContent="Read update ↗";
+  content.append(meta,title,excerpt,read);card.append(cover,content);grid.append(card);
+ }
+}
+</script>
+</body></html>
