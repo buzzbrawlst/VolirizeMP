@@ -14,7 +14,7 @@
 *{box-sizing:border-box}
 html,body{width:100%;height:100%;margin:0}
 body{overflow:hidden;background:#03050b;color:var(--white);font-family:"DM Sans",sans-serif}
-#liquid{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+#liquid{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}\n#liquid.shader-fallback{background:radial-gradient(ellipse at 24% 35%,rgba(0,224,255,.8),transparent 34%),radial-gradient(ellipse at 75% 65%,rgba(115,35,255,.82),transparent 38%),radial-gradient(ellipse at 55% 45%,rgba(15,75,255,.95),transparent 58%),#03050b;background-size:140% 140%;animation:fallbackFlow 14s ease-in-out infinite alternate}\n@keyframes fallbackFlow{from{background-position:0% 20%}to{background-position:100% 80%}}
 .shade{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 12%,rgba(1,3,10,.18) 58%,rgba(1,3,10,.78) 100%),linear-gradient(180deg,rgba(0,0,0,.24),transparent 35%,rgba(0,0,0,.28))}
 main{position:relative;z-index:2;min-height:100%;width:100%;display:flex;align-items:center;justify-content:center;padding:40px 22px}
 .hero{width:min(100%,760px);display:flex;flex-direction:column;align-items:center;text-align:center;transform:translateY(-1.5vh);animation:arrive 1.1s cubic-bezier(.2,.8,.2,1) both}
@@ -56,51 +56,85 @@ h1{font-size:clamp(38px,6vw,66px);line-height:1;letter-spacing:-.065em;font-weig
 (() => {
   const canvas = document.getElementById('liquid');
   const gl = canvas.getContext('webgl', {alpha:false, antialias:false, powerPreference:'high-performance'});
-  if (!gl) { canvas.style.background='radial-gradient(ellipse at 50% 55%,#064c88 0%,#14236f 30%,#160b3c 56%,#03050b 85%)'; return; }
+  if (!gl) { canvas.classList.add('shader-fallback'); return; }
   const vertex = `attribute vec2 p; void main(){gl_Position=vec4(p,0.0,1.0);}`;
   const fragment = `precision highp float;
-  uniform vec2 u_res; uniform vec2 u_mouse; uniform float u_time; uniform float u_active;
-  #define PI 3.14159265359
+  uniform vec2 u_res;
+  uniform vec2 u_mouse;
+  uniform float u_time;
+  uniform float u_active;
+
   float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}
-  float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
-  float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*noise(p);p*=2.02;a*=.5;}return v;}
+  float noise(vec2 p){
+    vec2 i=floor(p),f=fract(p);
+    f=f*f*(3.0-2.0*f);
+    return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x),
+               mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x),f.y);
+  }
+  float fbm(vec2 p){
+    float v=0.0,a=0.5;
+    for(int i=0;i<5;i++){v+=a*noise(p);p=p*2.03+vec2(17.1,9.2);a*=0.5;}
+    return v;
+  }
   void main(){
-    vec2 uv=gl_FragCoord.xy/u_res; vec2 p=(uv-.5)*vec2(u_res.x/u_res.y,1.0);
-    float t=u_time*.16;
-    vec2 m=(u_mouse-.5)*vec2(u_res.x/u_res.y,1.0);
-    float md=length(p-m); float influence=exp(-md*3.0)*u_active;
-    vec2 flow=vec2(fbm(p*2.2+vec2(t,-t)),fbm(p*2.2-vec2(t*.8,t)));
-    p += (flow-.5)*.42;
-    p += normalize(p-m+vec2(.0001))*influence*.17*sin(u_time*1.7);
-    float n=fbm(p*2.7+vec2(t*.7,-t*.45));
-    float n2=fbm(p*4.2-vec2(t*.4,t*.8));
-    float wave=sin(p.x*3.1+p.y*2.0+t*1.5+n*4.0)+cos(p.y*4.0-p.x*1.6-t+n2*3.0);
-    float liquid=smoothstep(-.45,.8,wave*.34+n*.65);
-    vec3 deep=vec3(.005,.018,.065);
-    vec3 blue=vec3(.015,.10,.62);
-    vec3 cyan=vec3(.0,.78,.88);
-    vec3 aqua=vec3(.12,.95,.88);
-    vec3 purple=vec3(.30,.055,.82);
-    vec3 pink=vec3(.92,.035,.58);
-    float bands=sin((p.x*1.7+p.y*2.1+n*2.5)*3.0-t*2.0);
-    vec3 col=mix(deep,blue,smoothstep(.16,.85,liquid));
-    col=mix(col,cyan,smoothstep(.48,.83,n2+liquid*.22)*.78);
-    col=mix(col,aqua,smoothstep(.70,.98,bands+n*.22)*.5);
-    col=mix(col,purple,smoothstep(.50,.95,fbm(p*1.8+vec2(2.4,-t)))*.68);
-    col=mix(col,pink,smoothstep(.79,1.0,fbm(p*3.0+vec2(-t,4.1)))*.55);
-    float edge=abs(fwidth(liquid)); float sheen=pow(max(0.,1.-abs(fract((n*2.0+wave*.13)*3.0)-.5)*2.),16.);
-    col+=vec3(.35,.85,1.)*sheen*.22;
-    float vignette=1.-smoothstep(.28,.95,length((uv-.5)*vec2(1.0,.85)));
-    col*=.55+.58*vignette;
-    col+=vec3(.0,.18,.28)*influence*.55;
-    col+=vec3(hash(gl_FragCoord.xy+u_time)-.5)*.012;
+    vec2 uv=gl_FragCoord.xy/u_res;
+    vec2 p=(uv-0.5)*vec2(u_res.x/u_res.y,1.0);
+    float t=u_time*0.13;
+    vec2 mouse=(u_mouse-0.5)*vec2(u_res.x/u_res.y,1.0);
+    float mouseDist=length(p-mouse);
+    float ripple=exp(-mouseDist*3.2)*u_active;
+
+    // Layered domain warping creates slow, organic liquid movement.
+    vec2 warp=vec2(
+      fbm(p*2.0+vec2(t,-t*0.72)),
+      fbm(p*2.0+vec2(-t*0.8,t*0.65))
+    );
+    vec2 q=p+(warp-0.5)*0.82;
+    q+=(p-mouse)*(-ripple*0.34*sin(t*8.0+mouseDist*7.0));
+
+    float broad=fbm(q*2.35+vec2(t*0.35,-t*0.22));
+    float detail=fbm(q*4.3-vec2(t*0.5,t*0.31));
+    float ribbons=sin(q.x*3.8+q.y*2.4+t*1.5+broad*5.0)
+                 +cos(q.y*4.7-q.x*2.1-t*1.1+detail*4.0);
+
+    // Soft-edged pools overlap like thick coloured slime.
+    float pool=smoothstep(0.30,0.76,broad+0.16*ribbons);
+    float pool2=smoothstep(0.36,0.78,detail+0.12*sin(ribbons*1.7));
+    float glossy=smoothstep(0.68,0.94,broad+detail*0.22);
+
+    vec3 midnight=vec3(0.003,0.008,0.035);
+    vec3 royalBlue=vec3(0.015,0.055,0.48);
+    vec3 electricBlue=vec3(0.015,0.30,0.98);
+    vec3 cyan=vec3(0.0,0.78,0.91);
+    vec3 aqua=vec3(0.16,0.96,0.88);
+    vec3 violet=vec3(0.29,0.055,0.82);
+    vec3 pink=vec3(0.94,0.045,0.58);
+
+    float colourFlow=fbm(q*1.45+vec2(1.7,-t*0.42));
+    vec3 col=mix(midnight,royalBlue,pool*0.95);
+    col=mix(col,electricBlue,smoothstep(0.34,0.82,colourFlow+pool2*0.22)*0.88);
+    col=mix(col,cyan,smoothstep(0.43,0.78,detail+pool*0.22)*0.88);
+    col=mix(col,aqua,smoothstep(0.70,0.96,ribbons*0.19+broad*0.72)*0.64);
+    col=mix(col,violet,smoothstep(0.38,0.82,fbm(q*1.7+vec2(3.2,t*0.25)))*0.72);
+    col=mix(col,pink,smoothstep(0.69,0.94,fbm(q*2.8+vec2(-t*0.4,4.0)))*0.62);
+
+    // Bright curved highlights give the pools a wet, gel-like surface.
+    float contour=abs(fract((broad*1.8+detail*0.7+ribbons*0.045)*4.0)-0.5);
+    float shine=pow(1.0-smoothstep(0.035,0.16,contour),3.0);
+    col+=vec3(0.42,0.91,1.0)*shine*0.24;
+    col+=vec3(0.06,0.28,0.58)*ripple*0.55;
+
+    float vignette=1.0-smoothstep(0.30,1.02,length((uv-0.5)*vec2(1.0,0.9)));
+    col*=0.66+0.48*vignette;
+    float grain=hash(gl_FragCoord.xy+u_time)-0.5;
+    col+=vec3(grain*0.012);
     gl_FragColor=vec4(col,1.0);
   }`;
-  function shader(type, source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.warn(gl.getShaderInfoLog(s));return null;}return s;}
+  function shader(type, source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.error('VolirizeMP shader compile failed:',gl.getShaderInfoLog(s));return null;}return s;}
   const vs=shader(gl.VERTEX_SHADER,vertex), fs=shader(gl.FRAGMENT_SHADER,fragment);
-  if(!vs||!fs)return;
+  if(!vs||!fs){ canvas.classList.add('shader-fallback'); return; }
   const program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);
-  if(!gl.getProgramParameter(program,gl.LINK_STATUS))return;
+  if(!gl.getProgramParameter(program,gl.LINK_STATUS)){ console.error('VolirizeMP shader link failed:',gl.getProgramInfoLog(program)); canvas.classList.add('shader-fallback'); return; }
   gl.useProgram(program);
   const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
   const loc=gl.getAttribLocation(program,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
