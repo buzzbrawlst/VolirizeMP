@@ -1,0 +1,20 @@
+{
+  "downloads": [
+    {
+      "name": "VolirizeMP Launcher",
+      "description": "Download the launcher",
+      "url": "https://example.com/launcher",
+      "image": "assets/volirize-mark.svg",
+      "icon": "V",
+      "accent": "rgba(0, 225, 255, .55)"
+    },
+    {
+      "name": "Discord",
+      "description": "Join the community",
+      "url": "https://discord.gg/jgsGPgz7y4",
+      "image": "",
+      "icon": "✦",
+      "accent": "rgba(130, 110, 255, .55)"
+    }
+  ]
+}
