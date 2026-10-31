@@ -9,11 +9,19 @@
       "accent": "rgba(0, 225, 255, .55)"
     },
     {
+      "name": "Fortnite Build",
+      "description": "Download The Fortnite Build",
+      "url": "",
+      "image": "assets/fortnite.png",
+      "icon": "",
+      "accent": "rgba(130, 110, 255, .55)"
+    },
+      {
       "name": "Discord",
       "description": "Join the community",
       "url": "https://discord.gg/jgsGPgz7y4",
-      "image": "",
-      "icon": "✦",
+      "image": "assets/discord.png",
+      "icon": "",
       "accent": "rgba(130, 110, 255, .55)"
     }
   ]
