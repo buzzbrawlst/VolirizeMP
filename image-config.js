@@ -16,7 +16,7 @@ window.VOLIRIZE_IMAGES = {
 
   home: {
     heroArtwork: "https://library.sportingnews.com/styles/crop_style_16_9_desktop_webp/s3/2021-08/fortnite-season-4-ftr_1agcwe7t3405x13mi09bjlruql.png.webp?itok=o4eNg9hv",
-    aboutArtwork: "",
+    aboutArtwork: "https://i.redd.it/ub1xrwfhh3id1.jpeg",
     features: {
       classic: "https://external-preview.redd.it/in-fortnite-the-clock-in-tilted-towers-actually-tracks-the-v0-bjU0eGw3bWxrZnliMbFNo6csniBVEkXwvO1JMoUgpTbIdzchk_5rTyblGaWP.png?format=pjpg&auto=webp&s=a99c6b4b88dd1916c1380dfde7f11de120f238ca",
       community: "https://twinfinite.net/wp-content/uploads/2020/08/fortnite-chapter-2-season-4-map-guide.jpeg?w=1366",
