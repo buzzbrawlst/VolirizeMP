@@ -4,7 +4,7 @@
       "name": "VolirizeMP Launcher",
       "description": "Download the launcher",
       "url": "https://example.com/launcher",
-      "image": "assets/volirize-mark.svg",
+      "image": "assets/volirizemp.png",
       "icon": "V",
       "accent": "rgba(0, 225, 255, .55)"
     },
