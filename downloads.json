@@ -11,8 +11,8 @@
     {
       "name": "Fortnite Build",
       "description": "Download The Fortnite Build",
-      "url": "",
-      "image": "assets/fortnite.png",
+      "url": "https://www.fortforge.co.uk/download/564d4689-db2a-44d4-87c0-8a464929dca9/build",
+      "image": "https://static.wikia.nocookie.net/logopedia/images/1/19/Fortnite_Icon_2020_-_3.jpeg/revision/latest?cb=20201213052526",
       "icon": "",
       "accent": "rgba(130, 110, 255, .55)"
     },
